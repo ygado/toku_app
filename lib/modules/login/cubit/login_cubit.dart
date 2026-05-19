@@ -59,7 +59,7 @@ class LoginCubit extends Cubit<LoginStates> {
   File? profileImage;
   String? userImage;
   final ImagePicker picker = ImagePicker();
-  late Database database;
+  Database? database;
   void createDataBase() {
     openDatabase(
       'user.db',
@@ -96,7 +96,8 @@ class LoginCubit extends Cubit<LoginStates> {
     required String password,
     String? profileImage,
   }) {
-    database
+    if (database == null) return;
+    database!
         .transaction((txn) async {
           await txn.rawInsert(
             'INSERT INTO users(email, password,image,name) VALUES(?, ?,?,?)',
@@ -117,7 +118,7 @@ class LoginCubit extends Cubit<LoginStates> {
     required String email,
     required String password,
   }) async {
-    List<Map> result = await database.rawQuery(
+    List<Map> result = await database!.rawQuery(
       'SELECT * FROM users WHERE email=? AND password=?',
       [email, password],
     );
@@ -131,7 +132,7 @@ class LoginCubit extends Cubit<LoginStates> {
   }
 
   Future<bool> checkEmail({required String email}) async {
-    List<Map> result = await database.rawQuery(
+    List<Map> result = await database!.rawQuery(
       'SELECT * FROM users WHERE email=? ',
       [email],
     );
@@ -139,7 +140,7 @@ class LoginCubit extends Cubit<LoginStates> {
   }
 
   Future<bool> checkPassword({required String password}) async {
-    List<Map> result = await database.rawQuery(
+    List<Map> result = await database!.rawQuery(
       'SELECT * FROM users WHERE password=? ',
       [password],
     );
@@ -150,12 +151,12 @@ class LoginCubit extends Cubit<LoginStates> {
     required String oldPassword,
     required String newPassword,
   }) async {
-    List<Map> result = await database.rawQuery(
+    List<Map> result = await database!.rawQuery(
       'SELECT * FROM users WHERE email=? AND password=? ',
       [emailController, oldPassword],
     );
     if (result.isNotEmpty) {
-      await database.rawUpdate('UPDATE users SET password=? WHERE email=?', [
+      await database!.rawUpdate('UPDATE users SET password=? WHERE email=?', [
         newPassword,
         emailController,
       ]);
@@ -169,7 +170,7 @@ class LoginCubit extends Cubit<LoginStates> {
 
     if (pickedFile != null) {
       profileImage = File(pickedFile.path);
-      await database.rawUpdate('UPDATE users SET image=? WHERE email=?', [
+      await database!.rawUpdate('UPDATE users SET image=? WHERE email=?', [
         pickedFile.path,
         emailController,
       ]);
@@ -179,7 +180,7 @@ class LoginCubit extends Cubit<LoginStates> {
   }
 
   Future<void> getProfileImage() async {
-    List<Map> result = await database.rawQuery(
+    List<Map> result = await database!.rawQuery(
       'SELECT image FROM users WHERE email=?',
       [emailController],
     );
@@ -189,5 +190,13 @@ class LoginCubit extends Cubit<LoginStates> {
 
       emit(LoginGetImageState());
     }
+  }
+
+  void logout() {
+    emailController = null;
+    username = null;
+    userImage = null;
+    profileImage = null;
+    emit(LoginLogoutState());
   }
 }

@@ -5,6 +5,7 @@ import 'package:todo_app/modules/login/cubit/login_cubit.dart';
 import 'package:todo_app/modules/login/cubit/login_states.dart';
 
 import '../../shared/component/components.dart';
+import '../login/login_views.dart';
 
 class ChangePassword extends StatefulWidget {
   const ChangePassword({super.key});
@@ -18,6 +19,14 @@ class _ChangePasswordState extends State<ChangePassword> {
   TextEditingController newPassword = TextEditingController();
   TextEditingController confirmPassword = TextEditingController();
   var formKey = GlobalKey<FormState>();
+  @override
+  void dispose() {
+    oldPassword.dispose();
+    newPassword.dispose();
+    confirmPassword.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<LoginCubit, LoginStates>(
@@ -36,7 +45,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                       Text(
                         'UpdatePassword',
                         style: TextStyle(
-                          fontSize: 40.sp,
+                          fontSize: 25.sp,
                           fontWeight: FontWeight.bold,
                           color: cubit.isDark ? Colors.white : Colors.black,
                         ),
@@ -94,7 +103,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                         labelText: 'Enter New Password',
                         hintText: 'Enter New Password',
                         prefixIcon: Icons.lock_outline,
-                        suffixIcon: cubit.isConfirmPassword
+                        suffixIcon: cubit.isNewPassword
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         onPressed: () {
@@ -137,29 +146,39 @@ class _ChangePasswordState extends State<ChangePassword> {
                         onPressed: () async {
                           if (formKey.currentState!.validate()) {
                             if (newPassword.text != confirmPassword.text) {
-                              return ScaffoldMessenger.of(context).showSnackBar(
+                              ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Password Does Not Match'),
                                 ),
                               );
+                              return;
                             }
-                          }
-                          bool checkEmail = await cubit.checkPassword(
-                            password: oldPassword.text,
-                          );
-                          if (checkEmail) {
-                            cubit.updatePassword(
-                              oldPassword: oldPassword.text,
-                              newPassword: newPassword.text,
+                            bool checkEmail = await cubit.checkPassword(
+                              password: oldPassword.text,
                             );
-
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Password Is Update')),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Password Is Wrong')),
-                            );
+                            if (checkEmail) {
+                              cubit.updatePassword(
+                                oldPassword: oldPassword.text,
+                                newPassword: newPassword.text,
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Password Updated Successfully',
+                                  ),
+                                ),
+                              );
+                              cubit.logout();
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(builder: (_) => LoginViews()),
+                                (route) => false,
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Password Is Wrong')),
+                              );
+                            }
                           }
                         },
                       ),

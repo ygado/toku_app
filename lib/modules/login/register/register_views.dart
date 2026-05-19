@@ -67,7 +67,7 @@ class _RegisterViewsState extends State<RegisterViews> {
                           if (value == null || value.isEmpty) {
                             return 'You Must Enter Name';
                           }
-                          final regExp = RegExp(r'^[a-zA-Z]+[a-zA-Z]$');
+                          final regExp = RegExp(r'^[a-zA-Z][a-zA-Z ]{1,}$');
                           if (!regExp.hasMatch(value)) {
                             return 'Please Enter a valid Name ';
                           }
@@ -194,13 +194,10 @@ class _RegisterViewsState extends State<RegisterViews> {
                                   content: Text('Register Successfully'),
                                 ),
                               );
-                              Navigator.pop(
+                              Navigator.pushAndRemoveUntil(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) {
-                                    return LoginViews();
-                                  },
-                                ),
+                                MaterialPageRoute(builder: (_) => LoginViews()),
+                                (route) => false,
                               );
                             }
                           }

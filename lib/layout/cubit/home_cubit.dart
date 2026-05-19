@@ -7,6 +7,8 @@ import 'package:todo_app/modules/done_tasks/done_tasks.dart';
 import 'package:todo_app/modules/new_tasks/new_tasks.dart';
 import 'package:todo_app/modules/settings/setting_profile.dart';
 
+import '../../modules/login/cubit/login_cubit.dart';
+
 class HomeCubit extends Cubit<HomeStates> {
   HomeCubit() : super(HomeInitialState());
   static HomeCubit get(BuildContext context) => BlocProvider.of(context);
@@ -52,11 +54,11 @@ class HomeCubit extends Cubit<HomeStates> {
   void createDataBase() {
     openDatabase(
       'todo.db',
-      version: 1,
+      version: 2,
       onCreate: (database, version) {
         database
             .execute(
-              'CREATE TABLE todo (id INTEGER PRIMARY KEY, title TEXT, time TEXT, date TEXT,status TEXT)',
+              'CREATE TABLE todo (id INTEGER PRIMARY KEY, title TEXT, time TEXT, date TEXT,status TEXT,user_email TEXT)',
             )
             .then((value) {
               debugPrint('DataBase Is Created');
@@ -64,6 +66,11 @@ class HomeCubit extends Cubit<HomeStates> {
             .catchError((error) {
               debugPrint('Error When Creating DataBase ${error.toString()}');
             });
+      },
+      onUpgrade: (database, oldVersion, newVersion) {
+        if (oldVersion < 2) {
+          database.execute('ALTER TABLE todo ADD COLUMN user_email TEXT');
+        }
       },
       onOpen: (database) {
         debugPrint('DataBase Is Opened');
@@ -79,13 +86,14 @@ class HomeCubit extends Cubit<HomeStates> {
     required String title,
     required String time,
     required String date,
+    required String userEmail,
   }) {
     if (database == null) return;
     database!.transaction((txn) async {
       await txn
           .rawInsert(
-            'INSERT INTO todo(title, time, date,status) VALUES(?, ?, ?,?)',
-            [title, time, date, "new"],
+            'INSERT INTO todo(title, time, date,status,user_email) VALUES(?, ?, ?,?,?)',
+            [title, time, date, "new", userEmail],
           )
           .then((value) {
             debugPrint('$value Inserting Successfully');
@@ -98,6 +106,12 @@ class HomeCubit extends Cubit<HomeStates> {
     });
   }
 
+  String userEmail = '';
+
+  void setUserEmail(String email) {
+    userEmail = email;
+  }
+
   List<Map> newTasks = [];
   List<Map> doneTasks = [];
   List<Map> archivedTasks = [];
@@ -106,23 +120,22 @@ class HomeCubit extends Cubit<HomeStates> {
     doneTasks = [];
     archivedTasks = [];
     database
-        .rawQuery('SELECT * FROM todo')
+        .rawQuery('SELECT * FROM todo WHERE user_email = ?', [userEmail])
         .then((value) {
-          value.forEach((action) {
-            if (action['status'] == 'new') {
+          for (final action in value) {
+            if (action['status'] == 'new')
               newTasks.add(action);
-            } else if (action['status'] == 'done') {
+            else if (action['status'] == 'done')
               doneTasks.add(action);
-            } else {
+            else
               archivedTasks.add(action);
-            }
-          });
+          }
 
           debugPrint('$value GetData Successfully');
           emit(HomeGetDataFromDataBaseStates());
         })
         .catchError((error) {
-          debugPrint('Error When Inserting DataBase ${error.toString()}');
+          debugPrint('Error When Getting  DataBase ${error.toString()}');
         });
   }
 
@@ -135,7 +148,7 @@ class HomeCubit extends Cubit<HomeStates> {
           getDataFromDataBase(database);
         })
         .catchError((error) {
-          debugPrint('Error When Inserting DataBase ${error.toString()}');
+          debugPrint('Error When Updating DataBase ${error.toString()}');
         });
   }
 
@@ -143,7 +156,7 @@ class HomeCubit extends Cubit<HomeStates> {
     database!
         .rawDelete('DELETE FROM todo WHERE id = ?', [id])
         .then((value) {
-          debugPrint('$value Updating Successfully');
+          debugPrint('$value Delete Successfully');
           emit(HomeDeleteDataFromDataBaseStates());
           getDataFromDataBase(database);
         })

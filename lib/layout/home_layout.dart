@@ -21,17 +21,23 @@ class _HomeLayoutState extends State<HomeLayout> {
   TextEditingController taskController = TextEditingController();
   TextEditingController timeController = TextEditingController();
   TextEditingController dateController = TextEditingController();
-@override
+  @override
   void dispose() {
     taskController.dispose();
     timeController.dispose();
     dateController.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider<HomeCubit>(
-      create: (BuildContext context) => HomeCubit()..createDataBase(),
+      create: (BuildContext context) {
+        final email = LoginCubit.get(context).emailController ?? '';
+        return HomeCubit()
+          ..setUserEmail(email)
+          ..createDataBase();
+      },
       child: BlocConsumer<HomeCubit, HomeStates>(
         listener: (context, state) {},
         builder: (context, state) {
@@ -74,6 +80,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                             title: taskController.text,
                             time: timeController.text,
                             date: dateController.text,
+                            userEmail: cubit.userEmail,
                           );
                           taskController.clear();
                           timeController.clear();
@@ -137,8 +144,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                                               context: context,
                                               initialTime: TimeOfDay.now(),
                                             ).then((value) {
-                                              timeController.text = value!
-                                                  .format(context);
+                                              if (value != null) timeController.text = value.format(context);
                                             });
                                           },
                                           readOnly: true,
@@ -168,15 +174,13 @@ class _HomeLayoutState extends State<HomeLayout> {
                                             showDatePicker(
                                               context: context,
                                               firstDate: DateTime.now(),
-                                              lastDate: DateTime.now().add(const Duration(days: 730)),
+                                              lastDate: DateTime.now().add(
+                                                const Duration(days: 730),
+                                              ),
                                             ).then((value) {
-                                              dateController.text =
-                                                  DateFormat.yMMMd().format(
-                                                    value!,
-                                                  );
-                                              debugPrint(
-                                                DateFormat.yMMM().format(value),
-                                              );
+                                              if (value != null) {
+                                                dateController.text = DateFormat.yMMMd().format(value);
+                                              }
                                             });
                                           },
                                           readOnly: true,

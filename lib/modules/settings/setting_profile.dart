@@ -8,6 +8,7 @@ import 'package:todo_app/modules/settings/changePassword.dart';
 import 'package:todo_app/shared/component/components.dart';
 
 import '../login/cubit/login_cubit.dart';
+import '../login/login_views.dart';
 
 class SettingProfile extends StatelessWidget {
   const SettingProfile({super.key});
@@ -87,6 +88,21 @@ class SettingProfile extends StatelessWidget {
                     text: 'ChangePassword',
                     onPressed: () {
                       defaultNavigator(context, ChangePassword());
+                    },
+                  ),
+                ),
+                defaultSizeBox(height: 15.h),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: defaultMaterialButton(
+                    text: 'Logout',
+                    onPressed: () {
+                      cubit.logout();
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => LoginViews()),
+                        (route) => false,
+                      );
                     },
                   ),
                 ),

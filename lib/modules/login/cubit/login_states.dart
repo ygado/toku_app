@@ -23,3 +23,5 @@ class LoginPickImageState extends LoginStates {}
 class LoginGetImageState extends LoginStates {}
 
 class LoginThemeChangedState extends LoginStates {}
+
+class LoginLogoutState extends LoginStates {}
