@@ -1,336 +1,221 @@
-import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
-import 'package:todo_app/modules/login/cubit/login_cubit.dart';
+import 'package:task_1/models/article_model.dart';
 
-import '../../layout/cubit/home_cubit.dart';
-
-Widget defaultTextFormField({
-  TextEditingController? controller,
-  TextInputType? keyboardType,
-  Function()? onTap,
+AppBar defaultAppBar({
+  IconData? iconsLeadin,
+  IconData? iconsAcction1,
+  IconData? iconsAcction2,
+  required String title,
   Function()? onPressed,
-  ValueChanged? onFieldSubmitted,
+}) => AppBar(
+  backgroundColor: Colors.brown,
+  leading: iconsLeadin != null
+      ? defaultIconButton(icons: iconsLeadin, onPressed: onPressed)
+      : null,
+  title: defaultText(text: title, color: Colors.white, size: 20),
+  actions: [
+    if (iconsAcction1 != null) defaultIconButton(icons: iconsAcction1),
+
+    if (iconsAcction2 != null) defaultIconButton(icons: iconsAcction2),
+  ],
+);
+
+Widget defaultIconButton({required IconData icons, Function()? onPressed}) =>
+    IconButton(
+      highlightColor: Colors.white,
+      style: IconButton.styleFrom(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      onPressed: onPressed,
+      icon: Icon(icons, color: Colors.black),
+    );
+
+Widget defaultText({
+  required String text,
+  required Color color,
+  required double size,
+  TextOverflow? overflow,
+  int? maxLines,
+}) => Text(
+  maxLines: maxLines,
+  overflow: overflow,
+  text,
+  style: TextStyle(color: color, fontSize: size, fontWeight: FontWeight.bold),
+);
+
+Widget defaultTextField({
+  TextEditingController? controller,
   ValueChanged? onChanged,
+  ValueChanged? onFieldSubmitted,
+  required bool isPassword,
+  TextInputType? keyboardType,
   FormFieldValidator? validator,
-  bool isPassword = false,
-  bool readOnly = false,
-  required String labelText,
-  required String hintText,
-  IconData? prefixIcon,
-  IconData? suffixIcon,
+  required String text,
+  required IconData prefix,
+  IconData? suffix,
+  Function()? suffixOnPressed,
 }) => TextFormField(
-  autovalidateMode: AutovalidateMode.onUserInteraction,
-  validator: validator,
   controller: controller,
-  keyboardType: keyboardType,
-  onTap: onTap,
-  onFieldSubmitted: onFieldSubmitted,
   onChanged: onChanged,
+  onFieldSubmitted: onFieldSubmitted,
   obscureText: isPassword,
-  readOnly: readOnly,
+  keyboardType: keyboardType,
+  validator: validator,
   decoration: InputDecoration(
-    labelText: labelText,
-    hintText: hintText,
-    prefixIcon: Icon(prefixIcon),
-    suffixIcon: IconButton(onPressed: onPressed, icon: Icon(suffixIcon)),
+    labelText: text,
+    prefixIcon: Icon(prefix, color: Colors.brown),
+    suffixIcon: IconButton(
+      onPressed: suffixOnPressed,
+      icon: Icon(suffix, color: Colors.brown),
+    ),
     border: OutlineInputBorder(),
   ),
 );
-SizedBox defaultSizeBox({double? width, double? height}) =>
-    SizedBox(width: width, height: height);
 
-Widget defaultMaterialButton({Function()? onPressed, required String text}) =>
-    Container(
-      width: double.infinity,
-      height: 40.h,
-      decoration: BoxDecoration(
-        color: Colors.blue,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: MaterialButton(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        onPressed: onPressed,
-        child: Text(
-          text,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 25.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-
-Future defaultNavigator(BuildContext context, Widget widget) => Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) {
-      return widget;
-    },
+Widget defaultMaterialButton({
+  Color? containerColor,
+  required double fonSize,
+  double? width,
+  required String text,
+  required Function() onPressed,
+  required Color color,
+}) => Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+  child: Container(
+    width: width,
+    child: MaterialButton(
+      color: containerColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      onPressed: onPressed,
+      child: defaultText(text: text, color: color, size: fonSize),
+    ),
   ),
 );
 
-Widget defaultArticleModel(Map model, context) => Dismissible(
-  key: Key(model['id'].toString()),
-  child: InkWell(
-    onTap: () {
-      TextEditingController titleController = TextEditingController(
-        text: model['title'],
-      );
-      TextEditingController timeController = TextEditingController(
-        text: model['time'],
-      );
-      TextEditingController dateController = TextEditingController(
-        text: model['date'],
-      );
-      var cubit = HomeCubit.get(context);
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled:true,
-        builder: (context) {
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              left: 20.h,
-              top: 20.h,
-              right: 20.h,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+Widget defaultContainer({
+  required Color color,
+  required String text,
+  required Function() onPressed,
+}) => GestureDetector(
+  onTap: onPressed,
+  child: Container(
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    alignment: Alignment.centerLeft,
+    width: double.infinity,
+    height: 100,
+    color: color,
+    child: defaultText(text: text, color: Colors.white, size: 35),
+  ),
+);
 
-                children: [
-                  defaultTextFormField(
-                    controller: titleController,
-                    keyboardType: TextInputType.text,
-                    onChanged: (value) {
-                      debugPrint(value);
-                    },
-                    onFieldSubmitted: (value) {
-                      debugPrint(value);
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'You Must Enter Task';
-                      }
-                      return null;
-                    },
-                    prefixIcon: Icons.task_alt_outlined,
-                    hintText: 'Enter Your Task',
-                    labelText: 'Enter Your Task',
-                  ),
-                  defaultSizeBox(height: 15.h),
-                  defaultTextFormField(
-                    controller: timeController,
-                    keyboardType: TextInputType.datetime,
-                    onChanged: (value) {
-                      debugPrint(value);
-                    },
-                    onFieldSubmitted: (value) {
-                      debugPrint(value);
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'You Must Enter Time';
-                      }
-                      return null;
-                    },
-                    onTap: () {
-                      showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                      ).then((value) {
-                        timeController.text = value!.format(context);
-                      });
-                    },
-                    readOnly: true,
-                    prefixIcon: Icons.watch_later_outlined,
-                    hintText: 'Enter Your Time',
-                    labelText: 'Enter Your Time',
-                  ),
-                  defaultSizeBox(height: 15.h),
-                  defaultTextFormField(
-                    controller: dateController,
-                    keyboardType: TextInputType.datetime,
-                    onChanged: (value) {
-                      debugPrint(value);
-                    },
-                    onFieldSubmitted: (value) {
-                      debugPrint(value);
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'You Must Enter Date';
-                      }
-                      return null;
-                    },
-                    onTap: () {
-                      showDatePicker(
-                        context: context,
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime.parse('2026-12-01'),
-                      ).then((value) {
-                        dateController.text = DateFormat.yMMMd().format(value!);
-                        debugPrint(DateFormat.yMMM().format(value));
-                      });
-                    },
-                    readOnly: true,
-                    prefixIcon: Icons.calendar_month,
-                    hintText: 'Enter Your Date',
-                    labelText: 'Enter Your Date',
-                  ),
-                  defaultSizeBox(height: 15.h),
-                  defaultMaterialButton(
-                    text: 'Update',
-                    onPressed: () {
-                      FocusScope.of(context).unfocus();
-                      cubit.editTaskFromDataBase(
-                        id: model['id'],
-                        title: titleController.text,
-                        time: timeController.text,
-                        date: dateController.text,
-                      );
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    },
-    child: SizedBox(
-      width: double.infinity,
-      height: 120.h,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Row(
+class DefaultItem extends StatelessWidget {
+  const DefaultItem({super.key, required this.articales});
+  final ArticleModel articales;
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
           children: [
-            CircleAvatar(
-              radius: 50.r,
-              backgroundColor: Colors.blue[200],
-              child: Text(
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                model['time'],
-                style: TextStyle(
-                  fontSize: 20.sp,
-                  color: LoginCubit.get(context).isDark
-                      ?  Colors.white : Colors.black,
-                ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
+              child: Container(
+                height: 75,
+                color: Color(0xffFFFDE4),
+                child: Image(image: AssetImage(articales.images!)),
               ),
             ),
-            defaultSizeBox(width: 10.w),
             Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    model['title'],
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      color: LoginCubit.get(context).isDark
-                          ? Colors.white : Colors.black,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    defaultText(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      text: articales.jbName.toUpperCase(),
+                      color: Colors.white,
+                      size: 20,
                     ),
-                  ),
-                  Text(
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    model['date'],
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      color: LoginCubit.get(context).isDark
-                          ? Colors.white : Colors.black,
+                    defaultText(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      text: articales.enName.toUpperCase(),
+                      color: Colors.white,
+                      size: 20,
                     ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.blue[100],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.r),
+                  ],
                 ),
               ),
-              onPressed: () {
-                HomeCubit.get(
-                  context,
-                ).updateDataFromDataBase(status: 'done', id: model['id']);
-              },
-              icon: Icon(
-                Icons.done,
-                size: 30.sp,
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
-              ),
             ),
-            defaultSizeBox(width: 8.w),
-            IconButton(
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.blue[100],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-              ),
-              onPressed: () {
-                HomeCubit.get(
-                  context,
-                ).updateDataFromDataBase(status: 'archived', id: model['id']);
-              },
-              icon: Icon(
-                Icons.archive_outlined,
-                size: 30.sp,
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: defaultIconButton(
+                icons: Icons.play_arrow,
+                onPressed: () {
+                  articales.playSound();
+                },
               ),
             ),
           ],
         ),
-      ),
-    ),
-  ),
-  onDismissed: (index) {
-    HomeCubit.get(context).deleteDataFromDataBase(id: model['id']);
-  },
-);
-
-Widget defaultItem(List tasks) => ConditionalBuilder(
-  condition: tasks.isNotEmpty,
-  builder: (context) {
-    return ListView.separated(
-      itemBuilder: (context, index) =>
-          defaultArticleModel(tasks[index], context),
-      separatorBuilder: (context, index) =>
-          Container(color: Colors.grey, width: double.infinity, height: 1.h),
-      itemCount: tasks.length,
+      ],
     );
-  },
-  fallback: (context) {
-    return Center(
+  }
+}
+
+class PhrasesItem extends StatelessWidget {
+  const PhrasesItem({super.key, required this.articales});
+  final ArticleModel articales;
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.menu,
-            size: 30.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey,
-          ),
-          Text(
-            'No Tasks Yet, Please Enter Tasks',
-            style: TextStyle(fontSize: 18.sp, color: Colors.grey),
+          Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      defaultText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: articales.jbName.toUpperCase(),
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      defaultText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: articales.enName.toUpperCase(),
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                child: defaultIconButton(
+                  icons: Icons.play_arrow,
+                  onPressed: () {
+                    articales.playSound();
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
-  },
-);
+  }
+}

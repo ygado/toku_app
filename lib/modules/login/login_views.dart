@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:todo_app/layout/home_layout.dart';
-import 'package:todo_app/modules/login/cubit/login_cubit.dart';
-import 'package:todo_app/modules/login/register/register_views.dart';
-import 'package:todo_app/shared/component/components.dart';
-
-import 'cubit/login_states.dart';
+import 'package:task_1/modules/register/register_views.dart';
+import 'package:task_1/modules/splash/splash_views.dart';
+import 'package:task_1/shared/component/components.dart';
 
 class LoginViews extends StatefulWidget {
   const LoginViews({super.key});
@@ -16,162 +11,108 @@ class LoginViews extends StatefulWidget {
 }
 
 class _LoginViewsState extends State<LoginViews> {
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  TextEditingController emailAddress = TextEditingController();
+  TextEditingController password = TextEditingController();
   var formKey = GlobalKey<FormState>();
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
+  bool isPassword = true;
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<LoginCubit, LoginStates>(
-      listener: (context, state) {},
-      builder: (context, state) {
-        var cubit = LoginCubit.get(context);
-        return Scaffold(
-          body: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(25.0),
-                child: Form(
-                  key: formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Login',
-                        style: TextStyle(
-                          fontSize: 50.sp,
-                          fontWeight: FontWeight.bold,
-                          color: cubit.isDark ? Colors.white : Colors.black,
-                        ),
-                      ),
-                      defaultSizeBox(height: 15.h),
-                      defaultTextFormField(
-                        controller: emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        onChanged: (value) {
-                          debugPrint(value);
-                        },
-                        onFieldSubmitted: (value) {
-                          debugPrint(value);
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'You Must Enter Email';
-                          }
-                          final regExp = RegExp(
-                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                          );
-                          if (!regExp.hasMatch(value)) {
-                            return 'Please Enter a valid Email ';
-                          }
-                          return null;
-                        },
-                        labelText: 'Enter Your Email',
-                        hintText: 'Enter Your Email',
-                        prefixIcon: Icons.email_outlined,
-                      ),
-
-                      defaultSizeBox(height: 15.h),
-                      defaultTextFormField(
-                        controller: passwordController,
-                        keyboardType: TextInputType.visiblePassword,
-                        onChanged: (value) {
-                          debugPrint(value);
-                        },
-                        onFieldSubmitted: (value) {
-                          debugPrint(value);
-                        },
-                        isPassword: cubit.isPassword,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'You Must Enter Password';
-                          }
-                          if (value.length < 6) {
-                            return 'Please Enter a valid Password';
-                          }
-                          return null;
-                        },
-                        labelText: 'Enter Your Password',
-                        hintText: 'Enter Your Password',
-                        prefixIcon: Icons.lock_outline,
-                        suffixIcon: cubit.isPassword
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        onPressed: () {
-                          cubit.changeIconEye();
-                        },
-                      ),
-                      defaultSizeBox(height: 15.h),
-                      defaultMaterialButton(
-                        text: 'Login',
-                        onPressed: () async {
-                          if (formKey.currentState!.validate()) {
-                            bool isSuccess = await cubit.loginUser(
-                              email: emailController.text,
-                              password: passwordController.text,
-                            );
-                            if (isSuccess) {
-                              FocusScope.of(context).unfocus();
-                              emailController.clear();
-                              passwordController.clear();
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(builder: (_) => HomeLayout()),
-                                (route) => false,
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Email Or Password Wrong'),
-                                ),
-                              );
-                            }
-                          }
-                        },
-                      ),
-                      defaultSizeBox(height: 15.h),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Don\'t have an account?',
-                            style: TextStyle(
-                              fontSize: 18.sp,
-                              fontWeight: FontWeight.bold,
-                              color: cubit.isDark ? Colors.white : Colors.black,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              defaultNavigator(context, RegisterViews());
-                            },
-                            child: Text(
-                              'Register',
-                              style: TextStyle(
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.bold,
-                                color: cubit.isDark
-                                    ? Colors.white
-                                    : Colors.black,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+    return Padding(
+      padding: const EdgeInsets.all(25),
+      child: Form(
+        key: formKey,
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                defaultText(text: 'Login', color: Colors.brown, size: 50),
+                SizedBox(height: 15),
+                defaultTextField(
+                  controller: emailAddress,
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (value) {
+                    print(value);
+                  },
+                  onFieldSubmitted: (value) {
+                    print(value);
+                  },
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Enter a valid email';
+                    }
+                  },
+                  text: 'Enter your email',
+                  prefix: Icons.email,
+                  isPassword: false,
                 ),
-              ),
+                SizedBox(height: 15),
+                defaultTextField(
+                  controller: password,
+                  keyboardType: TextInputType.visiblePassword,
+                  onChanged: (value) {
+                    print(value);
+                  },
+                  onFieldSubmitted: (value) {
+                    print(value);
+                  },
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Enter a valid password';
+                    }
+                  },
+                  text: 'Enter Your Password',
+                  prefix: Icons.lock,
+                  suffix: isPassword ? Icons.visibility_off : Icons.visibility,
+                  isPassword: isPassword,
+                  suffixOnPressed: () {
+                    setState(() {
+                      isPassword = !isPassword;
+                    });
+                  },
+                ),
+                SizedBox(height: 15),
+                defaultMaterialButton(
+                  containerColor: Colors.brown,
+                  fonSize: 20,
+                  width: double.infinity,
+                  color: Colors.white,
+                  text: 'Login',
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      print(emailAddress.text);
+                      print(password.text);
+                      Navigator.push(context, MaterialPageRoute(builder: (context){
+                        return SplashViews();
+                      }),);
+                    }
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    defaultText(
+                      text: 'Don\'t have an account?',
+                      color: Colors.brown,
+                      size: 15,
+                    ),
+                    defaultMaterialButton(
+                      fonSize: 10,
+                      text: 'Register Now',
+                      color: Colors.brown,
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context){
+                          return RegisterViews();
+                        }),);
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
